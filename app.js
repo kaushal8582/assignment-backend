@@ -1,5 +1,9 @@
 const express = require("express");
 const cors = require("cors");
+const cron = require("cron");
+const { CronJob } = require("cron");
+
+
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -30,9 +34,42 @@ app.get("/", (req, res) => {
     res.send("Hello World");
 });
 
+
+app.get("/api/v1/health", (req, res) => {   
+    res.status(200).json({
+        status: "success",
+        message: "Server is running"
+    });
+});
+
+
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/courses", courseRoutes);
 app.use("/api/v1/doubts", doubtRoutes);
+
+
+
+
+const job = new CronJob("*/10 * * * * *", () => {
+    
+    const che = async()=>{
+        try {
+            const res = await fetch("https://assignment-backend-ik8y.onrender.com/api/v1/health")
+            if(res.status === 200){
+                console.log("Server is running");
+            }else{
+                console.log("Server is not running");
+            }
+        } catch (error) {
+         console.log(error);
+        }
+    }
+
+    che()
+   
+ });
+ 
+ job.start();
 
 app.listen(process.env.PORT, async() => {
     await connectDb();
